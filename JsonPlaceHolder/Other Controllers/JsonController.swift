@@ -10,6 +10,8 @@ import UIKit
 
 class JsonController {
   static let shared = JsonController()
+  
+  let imageCache = NSCache<NSURL, UIImage>()
 
   // MARK: - Fetch Json Data
 
@@ -37,8 +39,13 @@ class JsonController {
 
   func fetchImage(urlString: String, completion: @escaping (UIImage?) -> Void) {
     if let url = URL(string: urlString) {
+      if let image = imageCache.object(forKey: url as NSURL) {
+        completion(image)
+        return
+      }
       URLSession.shared.dataTask(with: url) { data, response, error in
         if let data = data, let image = UIImage(data: data) {
+          self.imageCache.setObject(image, forKey: url as NSURL)
           completion(image)
         } else {
           completion(nil)
